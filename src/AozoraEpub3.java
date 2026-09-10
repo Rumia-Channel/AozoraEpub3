@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -431,7 +433,7 @@ public class AozoraEpub3
 					bookInfo.insertCoverPageToc = coverPageToc;
 					bookInfo.insertCoverPage = coverPage;
 					bookInfo.coverImageIndex = coverImageIndex;
-					if (coverFileName != null && !coverFileName.startsWith("http")) {
+					if (coverFileName != null && !isHttpUrl(coverFileName)) {
 						File coverFile = new File(coverFileName);
 						if (!coverFile.exists()) {
 							coverFileName = srcFile.getParent()+"/"+coverFileName;
@@ -450,7 +452,7 @@ public class AozoraEpub3
                         if (titleCreator[1] != null && !titleCreator[1].trim().isEmpty())
                             bookInfo.creator = titleCreator[1];
                     } else {
-//テキストから取得できていない場合
+						//テキストから取得できていない場合
                         if (bookInfo.title == null || bookInfo.title.isEmpty())
                             bookInfo.title = titleCreator[0] == null ? "" : titleCreator[0];
                         if (bookInfo.creator == null || bookInfo.creator.isEmpty())
@@ -468,7 +470,21 @@ public class AozoraEpub3
 			e.printStackTrace();
 		}
 	}
+	//URL判定
+	private static boolean isHttpUrl(String value) {
+		if (value == null || value.isEmpty()) {
+			return false;
+		}
 
+		try {
+			URI uri = new URI(value);
+			String scheme = uri.getScheme();
+			return "http".equalsIgnoreCase(scheme)
+					|| "https".equalsIgnoreCase(scheme);
+		} catch (URISyntaxException e) {
+			return false;
+		}
+	}
 	/** 出力ファイルを生成 */
 	static File getOutFile(File srcFile, File dstPath, BookInfo bookInfo, boolean autoFileName, String outExt)
 	{
